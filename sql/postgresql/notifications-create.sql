@@ -67,6 +67,5 @@ begin
 
 	return (0);
 end;' language 'plpgsql';
-
 select inline_0();
 drop function inline_0();
