@@ -22,8 +22,8 @@
 
 		<table cellspacing="5" cellpadding="5">
 		  <tr class="rowtitle">
-		    <th colspan="2">Notifications</th>
-		    <th>Subscribe</th>
+		    <th colspan="2">#intranet-workflow.Notifications#</th>
+		    <th>#intranet-workflow.Subscribe#</th>
 		  </tr>
 		  <multiple name="notifications">
 		    <if @notifications.rownum@ odd>
@@ -45,10 +45,10 @@
 		      </td>
 		      <td class="bt_listing">
 		        <if @notifications.subscribed_p@ false>
-		          <a href="@notifications.url@" title="@notifications.title@">Subscribe</a>
+		          <a href="@notifications.url@" title="@notifications.title@">#intranet-workflow.Subscribe#</a>
 		        </if>
 			<else>
-		          <a href="@notifications.url@" title="@notifications.title@">Unsubscribe</a>
+		          <a href="@notifications.url@" title="@notifications.title@">#intranet-workflow.Unsubscribe#</a>
 			</else>
 		      </td>
 		    </tr>
@@ -88,4 +88,5 @@
   </td>
 </tr>
 </table>
+
 

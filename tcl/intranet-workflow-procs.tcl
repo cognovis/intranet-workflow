@@ -410,7 +410,7 @@ ad_proc -public im_workflow_graph_component {
     db_foreach history $history_sql {
 	append history_html "
 	    <tr $bgcolor([expr $cnt % 2])>
-		<td>$transition_name</td>
+		<td>[lang::util::localize $transition_name]</td>
 		<td><nobr><a href=/intranet/users/view?user_id=$holding_user>$holding_user_name</a></nobr></td>
 		<td><nobr>$started_date_pretty</nobr></td>
 	    </tr>
@@ -461,7 +461,7 @@ ad_proc -public im_workflow_graph_component {
 	</td></tr>\n"
 	append transition_html "<tr $bgcolor([expr $cnt % 2])><td>
 		[lang::message::lookup "" intranet-workflow.Task_name "Task Name"]
-	</td><td>$transition_name</td></tr>\n"
+	</td><td>[lang::util::localize $transition_name]</td></tr>\n"
         incr cnt
 	append transition_html "<tr $bgcolor([expr $cnt % 2])><td>
 		[lang::message::lookup "" intranet-workflow.Holding_user "Holding User"]
@@ -1015,6 +1015,7 @@ ad_proc -public im_workflow_home_inbox_component {
     {-object_type ""}
     {-subtype_id ""}
     {-status_id ""}
+    {-exclude_type_ids ""}
 } {
     Returns a HTML table with the list of workflow tasks for the
     current user.
@@ -1146,7 +1147,11 @@ ad_proc -public im_workflow_home_inbox_component {
 
     append table_header_html "</tr>\n"
 
-
+    if {"" == $exclude_type_ids} {
+	set extra_where_clause ""
+    } else {
+	set extra_where_clause " and im_biz_object__get_type_id(o.object_id) not in ([template::util::tcl_to_sql_list $exclude_type_ids])"
+    }
     # ---------------------------------------------------------------
     # SQL Query
 
@@ -1178,6 +1183,7 @@ ad_proc -public im_workflow_home_inbox_component {
 		and t.state in ('enabled', 'started')
 		and t.transition_key = tr.transition_key
 		and t.workflow_key = tr.workflow_key
+                $extra_where_clause
     "
 
     if {"" != $order_by_clause} {
@@ -1238,9 +1244,16 @@ ad_proc -public im_workflow_home_inbox_component {
 
 	if {[lsearch $relationships $rel] == -1} { continue }
 
-	# L10ned version of next action
-	regsub -all " " $transition_name "_" next_action_key
-	set next_action_l10n [lang::message::lookup "" intranet-workflow.$next_action_key $transition_name]
+
+
+	regsub -all "#" $transition_name "" transition_key
+	if {$transition_name ne $transition_key} {
+	    set next_action_l10n [lang::message::lookup "" $transition_key]
+	} else {
+	    # L10ned version of next action
+	    regsub -all " " $transition_name "_" next_action_key
+	    set next_action_l10n [lang::message::lookup "" intranet-workflow.$next_action_key $transition_name]
+	}
 	set object_subtype [im_category_from_id $type_id]
 	set status [im_category_from_id $status_id]
 	set object_url "[im_biz_object_url $object_id "view"]&return_url=[ns_urlencode $return_url]"
