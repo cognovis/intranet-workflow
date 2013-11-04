@@ -1055,6 +1055,29 @@ ad_proc -public im_workflow_home_inbox_component {
     set form_vars [ns_conn form]
     if {"" == $form_vars} { set form_vars [ns_set create] }
 
+    # Vacation Absence Logic:
+    # Check if the current user is the vacation replacement for some other user
+    set replacement_ids [list $current_user_id]
+    if {[im_column_exists im_user_absences vacation_replacement_id]} {
+        # Get all the guys on vacation who have specified
+	# that the current user (or one of it's groups)
+	# should be the vacation replacement.
+	set replacement_ids [concat $replacement_ids [db_list vacation_replacement "
+		select	a.owner_id
+		from	im_user_absences a
+		where	a.vacation_replacement_id = :current_user_id
+        "]]
+    }
+
+    if {[im_column_exists im_employees vacation_replacement_id]} {
+        # Get all the guys who have set vacation replacement to the current user
+	set replacement_ids [concat [db_list employee_replacement "
+		select	e.employee_id
+		from	im_employees e
+		where	e.vacation_replacement_id = :current_user_id
+        "]]
+    }
+
     # Order_by logic: Get form HTTP session or use default
     if {"" == $order_by_clause} {
 	set order_by [ns_set get $form_vars "wf_inbox_order_by"]
@@ -1226,16 +1249,17 @@ ad_proc -public im_workflow_home_inbox_component {
 	# most relevant one. Maybe reorganize the code later to enable all rels as a bitmap
 	# and the all of the rels in the inbox...
 	set rel "none"
-	if {$current_user_id == $owner_id} { set rel "my_object" }
+	if {[lsearch $replacement_ids $owner_id] > -1} { set rel "my_object" }
 	foreach assigned_user_id $assigned_users {
-	    if {$current_user_id == $assigned_user_id && $rel != "holding_user"} { 
+	    if {[lsearch $replacement_ids $assigned_user_id] > -1 && $rel != "holding_user"} { 
 		set rel "assignment_group" 
 	    }
-	    if {$current_user_id == $holding_user} { 
+	    if {[lsearch $replacement_ids $holding_user] > -1} { 
 		set rel "holding_user" 
 	    }
 	}
 
+	# Skip if not related to the user
 	if {[lsearch $relationships $rel] == -1} { continue }
 
 	# L10ned version of next action
