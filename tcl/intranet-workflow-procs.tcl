@@ -975,6 +975,43 @@ ad_proc -public im_workflow_new_journal {
 
 
 
+
+ad_proc -public im_workflow_replacing_vacation_users {
+} {
+    Returns the list of users that the current_user_id is replacing.
+} {
+    set current_user_id [ad_get_user_id]
+
+    # Vacation Absence Logic:
+    # Check if the current user is the vacation replacement for some other user
+    set replacement_ids [list $current_user_id]
+    if {[im_column_exists im_user_absences vacation_replacement_id]} {
+        # Get all the guys on vacation who have specified
+	# that the current user (or one of it's groups)
+	# should be the vacation replacement.
+	set replacement_ids [concat $replacement_ids [db_list vacation_replacement "
+		select	a.owner_id
+		from	im_user_absences a
+		where	a.vacation_replacement_id = :current_user_id and
+			a.start_date::date <= now()::date and
+			a.end_date::date >= now()::date
+        "]]
+    }
+
+    if {[im_column_exists im_employees vacation_replacement_id]} {
+        # Get all the guys who have set vacation replacement to the current user
+	set replacement_ids [concat [db_list employee_replacement "
+		select	e.employee_id
+		from	im_employees e
+		where	e.vacation_replacement_id = :current_user_id
+        "]]
+    }
+
+    return $replacement_ids
+}
+
+
+
 ad_proc -public im_workflow_task_action {
     -task_id:required
     -action:required
@@ -1055,28 +1092,8 @@ ad_proc -public im_workflow_home_inbox_component {
     set form_vars [ns_conn form]
     if {"" == $form_vars} { set form_vars [ns_set create] }
 
-    # Vacation Absence Logic:
-    # Check if the current user is the vacation replacement for some other user
-    set replacement_ids [list $current_user_id]
-    if {[im_column_exists im_user_absences vacation_replacement_id]} {
-        # Get all the guys on vacation who have specified
-	# that the current user (or one of it's groups)
-	# should be the vacation replacement.
-	set replacement_ids [concat $replacement_ids [db_list vacation_replacement "
-		select	a.owner_id
-		from	im_user_absences a
-		where	a.vacation_replacement_id = :current_user_id
-        "]]
-    }
-
-    if {[im_column_exists im_employees vacation_replacement_id]} {
-        # Get all the guys who have set vacation replacement to the current user
-	set replacement_ids [concat [db_list employee_replacement "
-		select	e.employee_id
-		from	im_employees e
-		where	e.vacation_replacement_id = :current_user_id
-        "]]
-    }
+    # Vacation Absence Logic: Who does the current user replace?
+    set replacement_ids [im_workflow_replacing_vacation_users]
 
     # Order_by logic: Get form HTTP session or use default
     if {"" == $order_by_clause} {
