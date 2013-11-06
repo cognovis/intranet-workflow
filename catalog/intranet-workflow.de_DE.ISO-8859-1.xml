@@ -2,6 +2,8 @@
 <message_catalog package_key="intranet-workflow" locale="de_DE" charset="ISO-8859-1">
 
   <msg key="Action">Aktion</msg>
+  <msg key="Action_Canceled">Aktion abgebrochen</msg>
+  <msg key="Action_Performed">Aktion durchgeführt</msg>
   <msg key="Admin_workflows">Admin Workflows</msg>
   <msg key="All_Tasks">Alle Aufgaben</msg>
   <msg key="Approve">Freigeben</msg>
@@ -10,21 +12,30 @@
   <msg key="Assignee">Beauftragter</msg>
   <msg key="assignment_group">Zuweisungsgruppe</msg>
   <msg key="Automatic_trigger">Automatischer Trigger</msg>
+  <msg key="Back_to_last_page">Zurück zur letzten Seite</msg>
+  <msg key="Cancel_Button">Abbrechen</msg>
+  <msg key="Confirm_Button">Bestätigen</msg>
   <msg key="Confirm_Quote">Angebot bestätigen</msg>
   <msg key="Currrent_assignees">Aktuell Beauftragte</msg>
+  <msg key="Debug_Case">Workflow debuggen</msg>
   <msg key="Execute">Ausführen</msg>
+  <msg key="Holding_user">Haltender Benutzer</msg>
   <msg key="Modify">Anpassen</msg>
   <msg key="my_object">Mein Objekt</msg>
   <msg key="Next_step_details">Details zu nächsten Schritten</msg>
   <msg key="none">keine</msg>
+  <msg key="Nuke_Object">Objekt nuken</msg>
   <msg key="Object_Name">Objektname</msg>
   <msg key="Object_Owner">Objektbesitzer</msg>
   <msg key="Owner">Besitzer</msg>
   <msg key="Past_actions">Letzte Aktionen</msg>
   <msg key="Quote">Angebot</msg>
   <msg key="Relationship">Beziehnung</msg>
+  <msg key="Remove_From_Inbox">Von der Inbox entfernen</msg>
   <msg key="Reset_Case">Fall zurücksetzen</msg>
+  <msg key="Resource_Assignment">Ressource zuweisen</msg>
   <msg key="Status">Status</msg>
+  <msg key="Submit">Bestägigen</msg>
   <msg key="Task_name">Aufgabenname</msg>
   <msg key="Task_state">Aufgabenstatus</msg>
   <msg key="Type">Typ</msg>
