@@ -1171,7 +1171,12 @@ ad_proc -public im_workflow_home_inbox_component {
 	if {"" == $visible_for || [eval $visible_for]} {
 	    lappend column_vars "$column_render_tcl"
 	    regsub -all " " $column_name "_" col_txt
-	    set col_txt [lang::message::lookup "" intranet-workflow.$col_txt $column_name]
+
+	    # Only localize reasonable columns
+	    if {[regexp {^[a-zA-Z0-9_]+$} $col_txt]} {
+		set col_txt [lang::message::lookup "" intranet-workflow.$col_txt $column_name]
+	    }
+
 	    set col_url [export_vars -base $current_url {{wf_inbox_order_by $column_name}}]
 	    set admin_link "<a href=[export_vars -base "/intranet/admin/views/new-column" {return_url column_id {form_mode edit}}] target=\"_blank\">[im_gif wrench]</a>"
 	    if {!$user_is_admin_p} { set admin_link "" }
