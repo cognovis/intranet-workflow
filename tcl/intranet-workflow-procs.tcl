@@ -939,11 +939,14 @@ ad_proc -public im_workflow_journal_component {
 } {
     # Check if there is a WF case with object_id as reference object
     set cases [db_list case "select case_id from wf_cases where object_id = :object_id"]
-    if {[llength $cases] != 1} { return "" }
-
-    set params [list [list case_id [lindex $cases 0]]]
-    set result [ad_parse_template -params $params "/packages/acs-workflow/www/journal"]
-    return $result
+    
+    set result [list]
+#    if {[llength $cases] != 1} { return "" }
+    foreach case_id $cases {
+        set params [list [list case_id $case_id]]
+        lappend result "[ad_parse_template -params $params "/packages/acs-workflow/www/journal"]"
+    }
+    return [join $result "<p />"]
 }
 
 
