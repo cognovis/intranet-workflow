@@ -70,3 +70,6 @@ begin
 	END IF;
 	return 0;
 end;' language 'plpgsql';
+
+update wf_context_transition_info set unassigned_callback = 'im_workflow__assign_to_absence_supervisor' where workflow_key='vacation_approval_wf' and transition_key = 'approve';
+update wf_context_transition_info set unassigned_callback = 'im_workflow__assign_to_absence_supervisor' where workflow_key='hr_vacation_approval_wf' and transition_key = 'approve';
