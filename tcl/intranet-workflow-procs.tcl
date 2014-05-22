@@ -17,7 +17,7 @@ ad_library {
 ad_proc -public im_package_workflow_id {} {
     Returns the package id of the intranet-workflow module
 } {
-    return [util_memoize "im_package_workflow_id_helper"]
+    return [util_memoize im_package_workflow_id_helper]
 }
 
 ad_proc -private im_package_workflow_id_helper {} {
@@ -31,7 +31,7 @@ ad_proc -private im_workflow_url {} {
     returns "workflow" or "acs-workflow", depending where the
     acs-workflow module has been mounted.
 } {
-    set urls [util_memoize "db_list urls {select n.name from site_nodes n, apm_packages p where n.object_id = p.package_id and package_key = 'acs-workflow'}"]
+    set urls [util_memoize [list db_list urls "select n.name from site_nodes n, apm_packages p where n.object_id = p.package_id and package_key = 'acs-workflow'"]]
     return [lindex $urls 0]
 }
 
@@ -134,11 +134,10 @@ ad_proc -public im_workflow_pretty_name {
     Returns a pretty name for the WF
 } {
     if {![regexp {^[a-z0-9_]*$} $workflow_key match]} {
-	ad_return_complaint 1 "Bad Workflow Name:<br>must be only alphanumerical.<br>
-        Found: '$workflow_key'"
+        im_security_alert -location im_workflow_pretty_name -message "SQL Injection Attempt" -value $workflow_key -severity "Severe"
 	return "$workflow_key"
     }
-    return [util_memoize "db_string pretty_name \"select pretty_name from acs_object_types where object_type = '$workflow_key'\" -default $workflow_key"]
+    return [util_memoize [list db_string pretty_name "select pretty_name from acs_object_types where object_type = '$workflow_key'" -default $workflow_key]]
 }
 
 
@@ -152,7 +151,6 @@ ad_proc -public im_workflow_status_options {
     Returns a list of stati (actually: Places) 
     for the given workflow
 } {
-    #ToDo: Use util_memoize to reduce db-load
     set options [db_list_of_lists project_options "
 	 select	place_key,
 		place_key
