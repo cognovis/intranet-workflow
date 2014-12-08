@@ -95,6 +95,48 @@ end;
 $$ language 'plpgsql';
 
 
+create or replace function im_workflow__auto_approve_task (
+    p_task_id           integer,
+    p_case_id           integer,
+    p_transition_key    varchar,
+    p_owner_id          integer,
+    p_owner_name        varchar,
+    p_creation_user     integer,
+    p_creation_ip       varchar,
+    p_action            varchar,
+    p_msg               varchar
+) returns integer as
+$$
+declare
+    v_journal_id integer;
+begin
+
+    -- Start the task. Saves the user the work to press the "Start Task" button.
+    perform workflow_case__add_task_assignment (p_task_id, p_owner_id, 't');
+    perform workflow_case__begin_task_action (p_task_id,'start',p_creation_ip,p_owner_id,'');
+
+    v_journal_id := journal_entry__new(
+        null, 
+        p_case_id,
+        p_action,
+        p_action,
+        now(), 
+        p_creation_user, 
+        p_creation_ip,
+        p_msg
+    );
+
+    perform workflow_case__start_task (p_task_id,p_owner_id,v_journal_id);
+
+    -- Finish the task. That forwards the token to the next transition.
+    perform workflow_case__finish_task(p_task_id,v_journal_id);
+
+    return v_journal_id;
+
+end;
+$$ language 'plpgsql';
+
+
 -- Unassigned callback that assigns the transition to the supervisor of the owner
 -- of the underlying object
 --
@@ -138,7 +180,26 @@ begin
 	from	im_employees e
 	where	e.employee_id = v_creation_user;
 
-	if v_supervisor_id is not null then
+	if v_supervisor_id is null then
+
+        -- auto approves the current step and continues to the next one
+        -- logs this in the journal (with an "auto approved" entry) 
+        -- and makes sure that the approval_p information is set
+        -- to "t" and the absence request is actually approved. 
+
+        perform im_workflow__auto_approve_task(
+            p_task_id,
+            v_case_id,
+            v_transition_key,
+            v_owner_id,
+            v_owner_name,
+            v_creation_user,
+            v_creation_ip,
+            v_transition_key || ' assign_to_supervisor ' || v_owner_name,
+		    'Assigning to ' || v_owner_name || ' (auto-approved) as there is no supervisor.'
+        );
+
+    else
 
         perform im_workflow__assign_to_vacation_replacement_if(
             p_task_id,
@@ -172,6 +233,7 @@ begin
 	return 0;
 end;
 $$ language 'plpgsql';
+
 
 -- Unassigned callback that assigns the transition to the supervisor of the owner
 -- of the underlying absence
@@ -217,7 +279,26 @@ begin
 	from	im_employees e
 	where	e.employee_id = v_owner_id;
 
-	if v_supervisor_id is not null then
+	if v_supervisor_id is null then
+
+        -- auto approves the current step and continues to the next one
+        -- logs this in the journal (with an "auto approved" entry) 
+        -- and makes sure that the approval_p information is set
+        -- to "t" and the absence request is actually approved. 
+
+        perform im_workflow__auto_approve_task(
+            p_task_id,
+            v_case_id,
+            v_transition_key,
+            v_owner_id,
+            v_owner_name,
+            v_creation_user,
+            v_creation_ip,
+            v_transition_key || ' assign_to_supervisor ' || v_owner_name,
+		    'Assigning to ' || v_owner_name || ' (auto-approved) as there is no supervisor.'
+        );
+
+    else
 
         perform im_workflow__assign_to_vacation_replacement_if(
             p_task_id,
