@@ -18,7 +18,20 @@ declare
     v_journal_id                integer;
     v_slack_time_days           integer;
     v_msg                       varchar;
+    v_table_exists_p            boolean;
 begin
+
+    select true
+    into v_table_exists_p 
+    from pg_class c 
+    inner join pg_attribute a 
+    on (a.attrelid=c.oid) 
+    where relname='im_user_absences' 
+    and attname='vacation_replacement_id';
+    
+    if v_table_exists_p is null then
+        return;
+    end if;
 
     select attr_value into v_slack_time_days
     from apm_parameter_values pv
