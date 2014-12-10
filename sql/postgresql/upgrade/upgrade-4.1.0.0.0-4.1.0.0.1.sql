@@ -1,4 +1,4 @@
-SELECT acs_log__debug('/packages/intranet-workflow/sql/postgresql/upgrade/upgrade-4.0.5.0.3-4.0.5.0.4.sql','');
+SELECT acs_log__debug('/packages/intranet-workflow/sql/postgresql/upgrade/upgrade-4.1.0.0.0-4.1.0.0.1.sql','');
 
 create or replace function im_workflow__assign_to_vacation_replacement_if(
     p_task_id           integer,
@@ -135,7 +135,6 @@ begin
 
 end;
 $$ language 'plpgsql';
-
 
 -- Unassigned callback that assigns the transition to the supervisor of the owner
 -- of the underlying object
