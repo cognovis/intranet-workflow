@@ -47,12 +47,15 @@ begin
 
     -- check if the supervisor_id found is currently on vacation 
     -- (quick query in im_user_absences if now is in between absence dates)
+    -- End date is usually at 0:00 in the morning, hence the adding of the 1 day to make sure it is correctly opened
+    -- Only for active absences
 
     select vacation_replacement_id, person__name(vacation_replacement_id) 
     into v_vacation_replacement_id, v_vacation_replacement_name
     from im_user_absences
     where owner_id = p_supervisor_id
-    and (now() between (start_date - (v_slack_time_days || ' days')::interval) and end_date);
+    and (now() between (start_date - (v_slack_time_days || ' days')::interval) and  (end_date + '1 days'::interval))
+    and absence_status_id = 16000;
 
     -- In case an absence is found, check if there is a vacation_replacement_id. 
 
